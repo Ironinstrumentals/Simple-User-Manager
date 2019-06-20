@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Simple User Manager by: David Schlenker</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+          integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <link href="CSS/Styles.css" rel="stylesheet">
+    <script src="http://localhost:<%=PORT%>/socket.io/socket.io.js"></script>
+    <script src="https://simple-user-manager.herokuapp.com/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        let Users = [];
+        let SearchUsers = [];
+
+        function LoadUsers(data) {
+            document.getElementById('UserList').innerHTML = '';
+            for (let i = 0; i < Users.length; i++) {
+                document.getElementById('UserList').innerHTML += `
+                <div class="list-group-item">
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">UserID</span>
+                        </div>
+                        <input type="text" disabled class="form-control" placeholder="UUID" aria-label="UUID" value="${Users[i].UserID}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Email</span>
+                        </div>
+                        <input name="email" id="email" type="email" disabled class="form-control" placeholder="Email" aria-label="email" value="${Users[i].email}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">First</span>
+                        </div>
+                        <input name="FirstName" id="FirstName" type="text" disabled class="form-control" placeholder="First Last" aria-label="name" value="${Users[i].FirstName}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Last</span>
+                        </div>
+                        <input name="LastName" id="LastName" type="text" disabled class="form-control" placeholder="First Last" aria-label="name" value="${Users[i].LastName}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Age</span>
+                        </div>
+                        <input name="age" id="age" type="number" disabled class="form-control" placeholder="Age" aria-label="age" value="${Users[i].age}">
+                    </div>
+                    <div class="submitDiv">
+                        <a class="btn btn-secondary" style="color: whitesmoke" id="${Users[i].UserID}" href="/edit" onclick="setEdit(this.id)">Edit</a>
+                        <a class="btn btn-danger" style="color: whitesmoke" id="${Users[i].UserID}" onclick="deleteUser(this.id);" href="/list">Delete</a>
+                    </div>
+                </div>
+                `
+            }
+
+        }
+        function SortEmail() {
+            Users.sort(function(a, b){
+                if(a.email.toLowerCase() < b.email.toLowerCase()) { return -1; }
+                if(a.email.toLowerCase() > b.email.toLowerCase()) { return 1; }
+                return 0;
+            });
+            searchByName();
+        }
+        function SortUUID() {
+            Users.sort(function(a, b){
+                if(a.UserID.toLowerCase() < b.UserID.toLowerCase()) { return -1; }
+                if(a.UserID.toLowerCase() > b.UserID.toLowerCase()) { return 1; }
+                return 0;
+            });
+            searchByName();
+        }
+        function SortFirstName() {
+            Users.sort(function(a, b){
+                if(a.FirstName.toLowerCase() < b.FirstName.toLowerCase()) { return -1; }
+                if(a.FirstName.toLowerCase() > b.FirstName.toLowerCase()) { return 1; }
+                return 0;
+            });
+            searchByName();
+        }
+        function SortLastName() {
+            Users.sort(function(a, b){
+                if(a.LastName.toLowerCase() < b.LastName.toLowerCase()) { return -1; }
+                if(a.LastName.toLowerCase() > b.LastName.toLowerCase()) { return 1; }
+                return 0;
+            });
+            searchByName();
+        }
+        function SortAge() {
+            Users.sort(function(a, b){
+                if(a.age.toLowerCase() < b.age.toLowerCase()) { return -1; }
+                if(a.age.toLowerCase() > b.age.toLowerCase()) { return 1; }
+                return 0;
+            });
+            searchByName();
+        }
+        function deleteUser(data) {
+            console.log('Emit Delete');
+            socket.emit('DELETEUSER', data);
+        }
+        function setEdit(data) {
+            socket.emit('SETEDIT', data)
+        }
+        socket.on('UserList', (data) => {
+            Users = data;
+            LoadUsers(data);
+        })
+        function updateUser(UUID) {
+            socket.emit('UPDATE', UUID);
+        }
+        function searchByName() {
+            document.getElementById('UserList').innerHTML = '';
+            let Query = document.getElementById('SearchName').value;
+            for (let i = 0; i < Users.length; i++) {
+                if (Users[i].FirstName.includes(Query) || Users[i].LastName.includes(Query) || (Users[i].FirstName + ' ' + Users[i].LastName).includes(Query) || (Users[i].LastName + ' ' + Users[i].FirstName).includes(Query)) {
+                    document.getElementById('UserList').innerHTML += `
+                <div class="list-group-item">
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">UserID</span>
+                        </div>
+                        <input type="text" disabled class="form-control" placeholder="UUID" aria-label="UUID" value="${Users[i].UserID}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Email</span>
+                        </div>
+                        <input name="email" id="email" type="email" disabled class="form-control" placeholder="Email" aria-label="email" value="${Users[i].email.toLowerCase()}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">First</span>
+                        </div>
+                        <input name="FirstName" id="FirstName" type="text" disabled class="form-control" placeholder="First Last" aria-label="name" value="${Users[i].FirstName.toLowerCase()}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Last</span>
+                        </div>
+                        <input name="LastName" id="LastName" type="text" disabled class="form-control" placeholder="First Last" aria-label="name" value="${Users[i].LastName.toLowerCase()}">
+                    </div>
+                    <div class="input-group flex-row" style="padding: 0 10px 10px 10px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text input-tag">Age</span>
+                        </div>
+                        <input name="age" id="age" type="number" disabled class="form-control" placeholder="Age" aria-label="age" value="${Users[i].age.toLowerCase()}">
+                    </div>
+                    <div class="submitDiv">
+                        <a class="btn btn-secondary" style="color: whitesmoke" id="${Users[i].UserID}" href="/edit" onclick="setEdit(this.id)">Edit</a>
+                        <a class="btn btn-danger" style="color: whitesmoke" id="${Users[i].UserID}" onclick="deleteUser(this.id);" href="/list">Delete</a>
+                    </div>
+                </div>
+                    `
+                } else {
+                    if (Query == '') {
+                        LoadUsers(Users);
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">User Manager</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/create">Create</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/list">List <span class="sr-only">(current)</span></a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+<div class="container">
+    <div class="card" style="width: 32rem;">
+        <div class="card-body" style="margin-bottom: 0; padding-bottom: 0;">
+            <h5 class="card-title">User List:</h5>
+
+            <div>
+                <div><button class="btn btn-primary" style="margin-bottom: 5px;" onclick="location.reload();">Unsort</button></div>
+                <label for="ButtonBar">Sort Alphabetically by:</label>
+                <div id="ButtonBar">
+                    <button class="btn btn-primary" style="margin-bottom: 5px;" onclick="SortUUID();">User ID</button>
+                    <button class="btn btn-primary" style="margin-bottom: 5px;" onclick="SortEmail();">Email</button>
+                    <button class="btn btn-primary" style="margin-bottom: 5px;" onclick="SortFirstName();">First Name</button>
+                    <button class="btn btn-primary" style="margin-bottom: 5px;" onclick="SortLastName();">Last Name</button>
+                    <button class="btn btn-primary" style="margin-bottom: 5px;" onclick="SortAge();">Age</button>
+                </div>
+                <div>
+                    <label for="SearchName">Search by First/Last/Full Name:</label>
+                    <input id="SearchName" style="margin-bottom: 10px;" class="form-control" name="SearchName" type="search" placeholder="Name" oninput="searchByName();"/>
+                </div>
+            </div>
+        </div>
+        <div class="list-group UserList" id="UserList" style="margin-top: 3px; padding-top: 0; margin-bottom: 0; padding-bottom: 0;">
+            <!--                -->
+
+            <!--                -->
+        </div>
+    </div>
+</div>
+</body>
+</html>

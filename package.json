@@ -1,0 +1,28 @@
+{
+  "name": "package",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.17.1",
+    "express-client": "^1.0.1",
+    "express-server": "^0.7.0",
+    "fs": "0.0.1-security",
+    "mongodb": "^3.2.7",
+    "socket.io": "^2.2.0",
+    "socket.io-server": "^1.0.0-b",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "pretest": "npm run commit",
+    "test": "npm run push",
+    "posttest": "heroku open",
+    "start": "node app.js",
+    "commit": "git commit -am 'changes'",
+    "push": "git push heroku master"
+  },
+  "author": "David Schlenker",
+  "license": "ISC"
+}

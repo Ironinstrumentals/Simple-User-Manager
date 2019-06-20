@@ -1,0 +1,53 @@
+html {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+body {
+    display: flex;
+    margin: 0 auto;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background-color: dodgerblue;
+    flex-direction: column;
+}
+.navbar {
+    position: sticky;
+    z-index: 1;
+}
+.container {
+    margin-top: 85px;
+    padding-bottom: 20px;
+    position: static;
+    display: flex;
+    height: 100%;
+    width: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+}
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+.input-tag {
+    width: 4.2rem;
+
+}
+.input-group-prepend {
+    text-align: center;
+    display: flex;
+}
+.submitDiv {
+    padding: 0 0 10px 10px;
+}
+.UserList {
+    display: flex;
+    height: 23rem;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 100%;
+}
