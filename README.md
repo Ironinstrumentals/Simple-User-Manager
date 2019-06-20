@@ -1,4 +1,4 @@
-#To Run the App Use:
+# To Run the App Use:
 "npm run"
-#Or View it Here:
+# Or View it Here:
 https://simple-user-manager.herokuapp.com/
